@@ -14,10 +14,18 @@ When a scheduled task runs, it spawns a temporary `kiro-cli` agent, executes the
 
 ## Prerequisites
 
-- [agent-broker](https://github.com/thepagent/agent-broker) deployed on Kubernetes
+- [agent-broker](https://github.com/thepagent/agent-broker) deployed on Kubernetes via Helm
 - Shared PVC between agent-broker and cron-sidecar
 - Discord bot token (same bot as agent-broker)
-- Discord Guild ID
+
+## Shared Resources with agent-broker
+
+The following resources are already created by agent-broker and can be reused:
+
+| Resource | Name | Used for |
+|----------|------|----------|
+| Secret | `agent-broker` | `discord-bot-token` key |
+| PVC | `agent-broker` | Shared `/home/agent` volume |
 
 ## Deployment
 
@@ -31,8 +39,6 @@ docker build -t cron-sidecar:latest .
 
 ### Step 2: Add cron-sidecar to the agent-broker deployment
 
-Patch the existing `agent-broker` deployment to add a second container:
-
 ```bash
 kubectl patch deployment agent-broker --type=json -p='[
   {"op":"add","path":"/spec/template/spec/containers/-","value":{
@@ -40,7 +46,7 @@ kubectl patch deployment agent-broker --type=json -p='[
     "image": "cron-sidecar:latest",
     "imagePullPolicy": "Never",
     "env": [
-      {"name":"DISCORD_BOT_TOKEN","valueFrom":{"secretKeyRef":{"name":"<your-secret>","key":"discord-bot-token"}}},
+      {"name":"DISCORD_BOT_TOKEN","valueFrom":{"secretKeyRef":{"name":"agent-broker","key":"discord-bot-token"}}},
       {"name":"HOME","value":"/home/agent"},
       {"name":"DATA_DIR","value":"/home/agent/.kiro/cron-data"},
       {"name":"KIRO_CLI_PATH","value":"/usr/local/bin/kiro-cli"},
@@ -55,7 +61,7 @@ kubectl patch deployment agent-broker --type=json -p='[
 ]'
 ```
 
-Replace `<your-secret>` and `<your-guild-id>` with your actual values.
+Replace `<your-guild-id>` with your Discord server ID.
 
 ### Step 3: Verify
 
@@ -71,8 +77,8 @@ kubectl logs <pod-name> -c cron-sidecar
 
 | Variable | Required | Default | Description |
 |----------|----------|---------|-------------|
-| `DISCORD_BOT_TOKEN` | ✅ | — | Discord bot token |
-| `DISCORD_GUILD_ID` | — | — | Restrict to specific guild |
+| `DISCORD_BOT_TOKEN` | ✅ | — | Shared from agent-broker secret |
+| `DISCORD_GUILD_ID` | — | — | Restrict to specific guild (recommended) |
 | `DATA_DIR` | — | `/home/agent/.kiro/cron-data` | Directory for cron job storage |
 | `KIRO_CLI_PATH` | — | `kiro-cli` | Path to kiro-cli binary |
 | `CRON_TIMEZONE` | — | `Asia/Taipei` | Timezone for cron expressions |
@@ -80,7 +86,7 @@ kubectl logs <pod-name> -c cron-sidecar
 
 ## MCP Integration
 
-Since cron-sidecar shares the PVC with agent-broker, the kiro-cli agents it spawns automatically load the same MCP servers (e.g. `mcp-discord`). This means cron prompts can use Discord tools directly.
+Since cron-sidecar shares the PVC with agent-broker, the kiro-cli agents it spawns automatically load the same MCP servers (e.g. [mcp-discord](https://github.com/Sadivo/mcp-discord)). This means cron prompts can use Discord tools directly.
 
 Example cron prompt:
 ```
@@ -91,3 +97,31 @@ Example cron prompt:
 
 - [agent-broker](https://github.com/thepagent/agent-broker) — The main Discord bot this sidecar extends
 - [mcp-discord](https://github.com/Sadivo/mcp-discord) — Discord MCP server used by kiro-cli agents
+
+---
+
+## AI Assistant Deployment Guide
+
+> The following prompt can be given to an AI assistant (e.g. kiro-cli) to help deploy this project.
+
+```
+Please help me deploy cron-sidecar as a sidecar container alongside agent-broker on Kubernetes.
+
+Context:
+- agent-broker is already deployed via Helm
+- The existing secret name is "agent-broker" with key "discord-bot-token"
+- The existing PVC name is "agent-broker", mounted at /home/agent
+- The volume name in the deployment is "data"
+
+Steps to perform:
+1. Clone https://github.com/Sadivo/cron-sidecar and build the Docker image locally:
+   cd cron-sidecar && docker build -t cron-sidecar:latest .
+
+2. Patch the agent-broker deployment to add the cron-sidecar container,
+   reusing the existing secret and PVC. Set DISCORD_GUILD_ID to the actual guild ID.
+   Use imagePullPolicy: Never since the image is built locally.
+
+3. Verify the pod shows 2/2 Running and check cron-sidecar logs for "cron-sidecar running".
+
+4. In Discord, run /cron to create a test scheduled task and confirm it works.
+```
