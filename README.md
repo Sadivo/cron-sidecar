@@ -63,7 +63,17 @@ kubectl patch deployment agent-broker --type=json -p='[
 
 Replace `<your-guild-id>` with your Discord server ID.
 
-### Step 3: Verify
+### Step 3: Inject the cron skill for kiro
+
+Copy the steering file to the agent's PVC so kiro knows how to manage cron jobs via conversation:
+
+```bash
+kubectl cp steering/cron.md <pod-name>:/home/agent/.kiro/steering/cron.md -c agent-broker
+```
+
+After this, kiro can create, list, enable/disable, and delete scheduled tasks directly from Discord conversation — without needing the `/cron` slash command.
+
+### Step 4: Verify
 
 ```bash
 kubectl get pods
