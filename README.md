@@ -78,7 +78,7 @@ kubectl logs <pod-name> -c cron-sidecar
 | Variable | Required | Default | Description |
 |----------|----------|---------|-------------|
 | `DISCORD_BOT_TOKEN` | ✅ | — | Shared from agent-broker secret |
-| `DISCORD_GUILD_ID` | — | — | Restrict to specific guild (recommended) |
+| `DISCORD_GUILD_ID` | — | — | Restrict to specific guild. **Recommended** — without it, slash commands take up to 1 hour to appear in Discord (Global commands). With it, commands appear instantly (Guild commands). |
 | `DATA_DIR` | — | `/home/agent/.kiro/cron-data` | Directory for cron job storage |
 | `KIRO_CLI_PATH` | — | `kiro-cli` | Path to kiro-cli binary |
 | `CRON_TIMEZONE` | — | `Asia/Taipei` | Timezone for cron expressions |
