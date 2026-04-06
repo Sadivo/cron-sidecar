@@ -102,26 +102,8 @@ Example cron prompt:
 
 ## AI Assistant Deployment Guide
 
-> The following prompt can be given to an AI assistant (e.g. kiro-cli) to help deploy this project.
+> Paste the following to an AI assistant to deploy this project.
 
 ```
-Please help me deploy cron-sidecar as a sidecar container alongside agent-broker on Kubernetes.
-
-Context:
-- agent-broker is already deployed via Helm
-- The existing secret name is "agent-broker" with key "discord-bot-token"
-- The existing PVC name is "agent-broker", mounted at /home/agent
-- The volume name in the deployment is "data"
-
-Steps to perform:
-1. Clone https://github.com/Sadivo/cron-sidecar and build the Docker image locally:
-   cd cron-sidecar && docker build -t cron-sidecar:latest .
-
-2. Patch the agent-broker deployment to add the cron-sidecar container,
-   reusing the existing secret and PVC. Set DISCORD_GUILD_ID to the actual guild ID.
-   Use imagePullPolicy: Never since the image is built locally.
-
-3. Verify the pod shows 2/2 Running and check cron-sidecar logs for "cron-sidecar running".
-
-4. In Discord, run /cron to create a test scheduled task and confirm it works.
+Please deploy https://github.com/Sadivo/cron-sidecar as a sidecar to the existing agent-broker Kubernetes deployment, reusing its secret and PVC. Refer to the README for details.
 ```
