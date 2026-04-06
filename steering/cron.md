@@ -10,7 +10,14 @@ Scheduled tasks are managed by the `cron-sidecar` container and stored at:
 
 ## How to Create a Cron Job
 
-Write a new entry to the JSON file. Use `fs_read` to read the current file first, then `fs_write` to update it.
+⚠️ **IMPORTANT**: Always read the existing file first, then merge your new entry into it. Never overwrite the entire file.
+
+```
+1. fs_read /home/agent/.kiro/cron-data/cron/cron.json
+2. Parse the JSON object
+3. Add your new entry to the object
+4. fs_write the entire merged object back
+```
 
 ### JSON Schema
 
@@ -57,6 +64,8 @@ Write a new entry to the JSON file. Use `fs_read` to read the current file first
 | `0 9,18 * * *` | Daily at 09:00 and 18:00 |
 
 ## How to List / Edit / Delete
+
+⚠️ **IMPORTANT**: Always read the existing file first, then merge changes. Never overwrite the entire file with only your changes.
 
 Read and modify `/home/agent/.kiro/cron-data/cron/cron.json` directly using `fs_read` and `fs_write`.
 
