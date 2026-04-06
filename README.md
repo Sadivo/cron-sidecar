@@ -6,9 +6,28 @@
 
 ## 功能
 
-- `/cron` — 透過 Discord modal 建立排程任務（名稱、cron 表達式、prompt、model、工作目錄）
-- `/cron-list` — 列出、啟用/停用、編輯、刪除排程任務
-- `/reminder` — 設定一次性提醒
+### Discord Slash Commands
+
+在 Discord 聊天輸入框輸入 `/` 即可使用以下指令：
+
+- `/cron` — 透過表單建立排程任務，可設定：
+  - 任務名稱
+  - 執行頻率（cron 表達式，例如 `*/30 * * * *`）
+  - 要 kiro 執行的 prompt
+  - 使用的 AI model（選填）
+  - 工作目錄（選填）
+- `/cron-list` — 列出目前頻道的所有排程任務，並提供按鈕操作：
+  - ⏸️ 暫停 / ▶️ 恢復
+  - ✏️ 編輯
+  - 🗑️ 刪除
+- `/reminder` — 設定一次性提醒（例如 `+30m`、`14:00`、`明天 09:00`）
+
+### Kiro Skill 整合
+
+透過注入 steering 檔案，kiro 可在 Discord 對話中直接管理排程，無需使用 `/` 指令：
+
+- 直接告訴 kiro「幫我建立一個每天早上 9 點的排程」
+- kiro 會讀取並編輯排程設定檔（`cron.json`），cron-sidecar 會自動偵測變更並執行
 
 排程執行時，會啟動一個臨時的 `kiro-cli` agent 執行 prompt，並將結果回傳到指定的 Discord 頻道。
 
