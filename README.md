@@ -115,5 +115,5 @@ cron-sidecar 與 agent-broker 共用 PVC，因此它啟動的 kiro-cli agent 會
 > 將以下內容貼給 AI 助理即可協助部署。
 
 ```
-請將 https://github.com/Sadivo/cron-sidecar 以 sidecar 形式部署到現有的 agent-broker Kubernetes deployment，複用其 secret 和 PVC。詳細步驟請參考 README。
+Please deploy https://github.com/Sadivo/cron-sidecar as a sidecar to the existing agent-broker Kubernetes deployment, reusing its secret and PVC. Refer to the README for details.
 ```
