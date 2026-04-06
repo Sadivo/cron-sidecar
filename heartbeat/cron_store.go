@@ -94,8 +94,9 @@ func (s *CronStore) Update(job *CronJob) error {
 }
 
 func (s *CronStore) ListByChannel(channelID string) []*CronJob {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	_ = s.load()
 	var out []*CronJob
 	for _, j := range s.jobs {
 		if j.ChannelID == channelID {
@@ -107,8 +108,9 @@ func (s *CronStore) ListByChannel(channelID string) []*CronJob {
 }
 
 func (s *CronStore) All() []*CronJob {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	_ = s.load()
 	out := make([]*CronJob, 0, len(s.jobs))
 	for _, j := range s.jobs {
 		cp := *j
