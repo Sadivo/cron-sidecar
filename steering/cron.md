@@ -48,7 +48,8 @@ Scheduled tasks are managed by the `cron-sidecar` container and stored at:
 ### Field Notes
 
 - `id`: 8-char random hex, e.g. `a1b2c3d4`
-- `schedule`: standard 5-field cron expression (`分 時 日 月 星期`)
+- `schedule`: standard 5-field cron expression (`分 時 日 月 星期`). If the user provides natural language (e.g. 「每30分鐘」、「每天早上9點」), convert it to the correct cron expression before writing.
+- `schedule_human`: store the original user input here (e.g. 「每30分鐘」)
 - `use_agent`: always `true` to run via kiro-cli agent
 - `one_shot`: set `true` for one-time reminders (job auto-deletes after running)
 - `model`: leave empty to use default, or specify e.g. `claude-haiku-4.5`
