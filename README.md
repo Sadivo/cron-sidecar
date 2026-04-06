@@ -1,35 +1,35 @@
 # cron-sidecar
 
-> ⚠️ **Experimental** — This project has been tested as an add-on for [agent-broker](https://github.com/thepagent/agent-broker) only. Use at your own risk.
+> ⚠️ **實驗性專案** — 僅在 [agent-broker](https://github.com/thepagent/agent-broker) 環境下測試過，請自行評估風險。
 
-A Discord bot sidecar that adds cron scheduling capabilities to [agent-broker](https://github.com/thepagent/agent-broker). Runs as a second container in the same Kubernetes Pod, sharing the same PVC so it can use the same kiro-cli sessions and MCP tools.
+為 [agent-broker](https://github.com/thepagent/agent-broker) 新增排程功能的 sidecar。以第二個 container 的形式運行在同一個 Kubernetes Pod 中，共用 PVC，可使用相同的 kiro-cli sessions 和 MCP 工具。
 
-## Features
+## 功能
 
-- `/cron` — Create a scheduled task via Discord modal (name, cron expression, prompt, model, working directory)
-- `/cron-list` — List, enable/disable, edit, or delete scheduled tasks
-- `/reminder` — Set a one-shot reminder
+- `/cron` — 透過 Discord modal 建立排程任務（名稱、cron 表達式、prompt、model、工作目錄）
+- `/cron-list` — 列出、啟用/停用、編輯、刪除排程任務
+- `/reminder` — 設定一次性提醒
 
-When a scheduled task runs, it spawns a temporary `kiro-cli` agent, executes the prompt, and posts the result back to the specified Discord channel.
+排程執行時，會啟動一個臨時的 `kiro-cli` agent 執行 prompt，並將結果回傳到指定的 Discord 頻道。
 
-## Prerequisites
+## 前置需求
 
-- [agent-broker](https://github.com/thepagent/agent-broker) deployed on Kubernetes via Helm
-- Shared PVC between agent-broker and cron-sidecar
-- Discord bot token (same bot as agent-broker)
+- 已透過 Helm 部署 [agent-broker](https://github.com/thepagent/agent-broker)
+- agent-broker 與 cron-sidecar 共用 PVC
+- Discord bot token（與 agent-broker 使用同一個 bot）
 
-## Shared Resources with agent-broker
+## 與 agent-broker 共用的資源
 
-The following resources are already created by agent-broker and can be reused:
+agent-broker 已建立的資源可直接複用：
 
-| Resource | Name | Used for |
-|----------|------|----------|
-| Secret | `agent-broker` | `discord-bot-token` key |
-| PVC | `agent-broker` | Shared `/home/agent` volume |
+| 資源 | 名稱 | 用途 |
+|------|------|------|
+| Secret | `agent-broker` | `discord-bot-token` 欄位 |
+| PVC | `agent-broker` | 共用 `/home/agent` volume |
 
-## Deployment
+## 部署方式
 
-### Step 1: Build the Docker image
+### 步驟一：編譯 Docker image
 
 ```bash
 git clone https://github.com/Sadivo/cron-sidecar.git
@@ -37,7 +37,7 @@ cd cron-sidecar
 docker build -t cron-sidecar:latest .
 ```
 
-### Step 2: Add cron-sidecar to the agent-broker deployment
+### 步驟二：將 cron-sidecar 加入 agent-broker deployment
 
 ```bash
 kubectl patch deployment agent-broker --type=json -p='[
@@ -61,59 +61,59 @@ kubectl patch deployment agent-broker --type=json -p='[
 ]'
 ```
 
-Replace `<your-guild-id>` with your Discord server ID.
+將 `<your-guild-id>` 替換為你的 Discord 伺服器 ID。
 
-### Step 3: Inject the cron skill for kiro
+### 步驟三：注入 cron skill 給 kiro
 
-Copy the steering file to the agent's PVC so kiro knows how to manage cron jobs via conversation:
+將 steering 檔案複製到 PVC，讓 kiro 能透過對話管理排程任務：
 
 ```bash
 kubectl cp steering/cron.md <pod-name>:/home/agent/.kiro/steering/cron.md -c agent-broker
 ```
 
-After this, kiro can create, list, enable/disable, and delete scheduled tasks directly from Discord conversation — without needing the `/cron` slash command.
+完成後，kiro 可直接在 Discord 對話中建立、列出、啟停、刪除排程任務，不需要使用 `/cron` 指令。
 
-### Step 4: Verify
+### 步驟四：確認部署
 
 ```bash
 kubectl get pods
-# Should show 2/2 Running for agent-broker pod
+# agent-broker pod 應顯示 2/2 Running
 
 kubectl logs <pod-name> -c cron-sidecar
-# Should show: cron-sidecar running
+# 應顯示：cron-sidecar running
 ```
 
-## Environment Variables
+## 環境變數
 
-| Variable | Required | Default | Description |
-|----------|----------|---------|-------------|
-| `DISCORD_BOT_TOKEN` | ✅ | — | Shared from agent-broker secret |
-| `DISCORD_GUILD_ID` | — | — | Restrict to specific guild. **Recommended** — without it, slash commands take up to 1 hour to appear in Discord (Global commands). With it, commands appear instantly (Guild commands). |
-| `DATA_DIR` | — | `/home/agent/.kiro/cron-data` | Directory for cron job storage |
-| `KIRO_CLI_PATH` | — | `kiro-cli` | Path to kiro-cli binary |
-| `CRON_TIMEZONE` | — | `Asia/Taipei` | Timezone for cron expressions |
-| `BOT_LOCALE` | — | `zh-TW` | Bot language (`zh-TW` or `en`) |
+| 變數 | 必填 | 預設值 | 說明 |
+|------|------|--------|------|
+| `DISCORD_BOT_TOKEN` | ✅ | — | 從 agent-broker secret 共用 |
+| `DISCORD_GUILD_ID` | — | — | 限定特定伺服器。**建議設定** — 不設定時 slash commands 最多需要 1 小時才會出現（Global commands）；設定後立即生效（Guild commands）。 |
+| `DATA_DIR` | — | `/home/agent/.kiro/cron-data` | 排程資料儲存目錄 |
+| `KIRO_CLI_PATH` | — | `kiro-cli` | kiro-cli binary 路徑 |
+| `CRON_TIMEZONE` | — | `Asia/Taipei` | Cron 表達式的時區 |
+| `BOT_LOCALE` | — | `zh-TW` | Bot 語言（`zh-TW` 或 `en`） |
 
-## MCP Integration
+## MCP 整合
 
-Since cron-sidecar shares the PVC with agent-broker, the kiro-cli agents it spawns automatically load the same MCP servers (e.g. [mcp-discord](https://github.com/Sadivo/mcp-discord)). This means cron prompts can use Discord tools directly.
+cron-sidecar 與 agent-broker 共用 PVC，因此它啟動的 kiro-cli agent 會自動載入相同的 MCP server（例如 [mcp-discord](https://github.com/Sadivo/mcp-discord)），排程 prompt 可直接使用 Discord 工具。
 
-Example cron prompt:
+範例 prompt：
 ```
 抓取頻道 1306423103659835443 的最新訊息，找出有日文 embed 的訊息，翻譯成繁體中文後回覆到該訊息下。
 ```
 
-## Related Projects
+## 相關專案
 
-- [agent-broker](https://github.com/thepagent/agent-broker) — The main Discord bot this sidecar extends
-- [mcp-discord](https://github.com/Sadivo/mcp-discord) — Discord MCP server used by kiro-cli agents
+- [agent-broker](https://github.com/thepagent/agent-broker) — 本 sidecar 所擴充的主要 Discord bot
+- [mcp-discord](https://github.com/Sadivo/mcp-discord) — kiro-cli agent 使用的 Discord MCP server
 
 ---
 
-## AI Assistant Deployment Guide
+## AI 助理部署提示詞
 
-> Paste the following to an AI assistant to deploy this project.
+> 將以下內容貼給 AI 助理即可協助部署。
 
 ```
-Please deploy https://github.com/Sadivo/cron-sidecar as a sidecar to the existing agent-broker Kubernetes deployment, reusing its secret and PVC. Refer to the README for details.
+請將 https://github.com/Sadivo/cron-sidecar 以 sidecar 形式部署到現有的 agent-broker Kubernetes deployment，複用其 secret 和 PVC。詳細步驟請參考 README。
 ```
